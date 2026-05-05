@@ -34,7 +34,7 @@
         console.log("Cargando modelo...");
         try {
             
-            modeloWeb = await tf.loadGraphModel('carpeta_web/model.json');
+            modeloWeb = await tf.loadGraphModel('./carpeta_web/model.json');
             console.log("Modelo cargado con éxito");
         } catch (error) {
             document.getElementById("resultado").innerText = "Error al cargar el modelo.";
