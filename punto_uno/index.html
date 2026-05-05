@@ -33,8 +33,8 @@
     async function cargarModelo() {
         console.log("Cargando modelo...");
         try {
-            // Asegúrate de que model.json esté en la misma carpeta
-            modeloWeb = await tf.loadLayersModel('./model.json');
+            
+            modeloWeb = await tf.loadLayersModel('./carpeta_web/model.json');
             console.log("Modelo cargado con éxito");
         } catch (error) {
             document.getElementById("resultado").innerText = "Error al cargar el modelo.";
