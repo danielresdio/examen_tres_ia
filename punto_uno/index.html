@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Energía - Regresión Lineal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; text-align: center; color: #333; }
+        .card { background: white; max-width: 400px; margin: 50px auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; }
+        input { padding: 12px; width: 80%; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 20px; font-size: 16px; }
+        button { padding: 12px 25px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        #resultado { margin-top: 25px; font-weight: bold; color: #e67e22; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Consumo del Servidor</h2>
+    <p>Ingresa el % de carga de trabajo:</p>
+    <input type="number" id="inputCarga" placeholder="Ejemplo: 75" min="0" max="100">
+    <br>
+    <button onclick="realizarPrediccion()">Predecir Consumo</button>
+    <div id="resultado">Esperando datos...</div>
+</div>
+
+<script>
+    let modeloWeb = null;
+
+    // Función para cargar el modelo al entrar a la página
+    async function cargarModelo() {
+        console.log("Cargando modelo...");
+        try {
+            
+            modeloWeb = await tf.loadLayersModel('carpeta_web/model.json');
+            console.log("Modelo cargado con éxito");
+        } catch (error) {
+            document.getElementById("resultado").innerText = "Error al cargar el modelo.";
+        }
+    }
+
+    async function realizarPrediccion() {
+        if (modeloWeb == null) {
+            alert("El modelo aún no se ha cargado");
+            return;
+        }
+
+        const carga = document.getElementById("inputCarga").value;
+        if (carga === "") return;
+
+        // Convertir entrada a Tensor de 2 dimensiones [batch, 1]
+        const tensorEntrada = tf.tensor2d([parseFloat(carga)], [1, 1]);
+        
+        // Ejecutar predicción
+        const prediccion = modeloWeb.predict(tensorEntrada);
+        
+        // Obtener el valor numérico del tensor resultante
+        const resultadoFinal = await prediccion.data();
+        
+        document.getElementById("resultado").innerText = 
+            "Consumo Estimado: " + resultadoFinal[0].toFixed(2) + " Watts";
+
+        // Limpieza de memoria de tensores
+        tensorEntrada.dispose();
+        prediccion.dispose();
+    }
+
+    // Ejecutar carga al inicio
+    cargarModelo();
+</script>
+
+</body>
+</html>
