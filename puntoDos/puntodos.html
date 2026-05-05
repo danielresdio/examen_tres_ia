@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Punto 2: Clasificación de Microchips</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: inline-block; }
+        input { padding: 10px; margin: 10px; width: 200px; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #resultado { margin-top: 20px; font-weight: bold; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Clasificador de Microchips</h2>
+        <p>Ingresa los resultados de las dos pruebas (0.0 a 1.0):</p>
+        
+        <input type="number" id="test1" placeholder="Resultado Test 1" step="0.01">
+        <br>
+        <input type="number" id="test2" placeholder="Resultado Test 2" step="0.01">
+        <br>
+        <button onclick="predecir()">Clasificar Microchip</button>
+        
+        <div id="resultado">Cargando modelo...</div>
+    </div>
+
+    <script>
+        let modelo;
+
+        // Función para cargar el modelo
+        async function cargarModelo() {
+            try {
+                // Ajustamos la ruta segun la carpeta que creaste en el Colab
+                modelo = await tf.loadLayersModel('./carpeta_web_punto2/model.json');
+                document.getElementById("resultado").innerText = "Modelo listo para clasificar.";
+                console.log("Modelo cargado");
+            } catch (error) {
+                document.getElementById("resultado").innerText = "Error al cargar el modelo.";
+                console.error(error);
+            }
+        }
+
+        // Función para realizar la predicción
+        async function predecir() {
+            if (!modelo) return;
+
+            const t1 = parseFloat(document.getElementById("test1").value);
+            const t2 = parseFloat(document.getElementById("test2").value);
+
+            if (isNaN(t1) || isNaN(t2)) {
+                alert("Por favor, ingresa ambos valores.");
+                return;
+            }
+
+            // Creamos el tensor con los dos valores de entrada
+            const input = tf.tensor2d([[t1, t2]]);
+            const prediccion = modelo.predict(input);
+            const data = await prediccion.data();
+            const probabilidad = data[0];
+
+            // Si la probabilidad es mayor a 0.5, es APTO (1)
+            const respuesta = probabilidad > 0.5 ? "APTO ✅" : "RECHAZADO ❌";
+            
+            document.getElementById("resultado").innerText = 
+                `Resultado: ${respuesta} (${(probabilidad * 100).toFixed(2)}% de confianza)`;
+        }
+
+        cargarModelo();
+    </script>
+</body>
+</html>
