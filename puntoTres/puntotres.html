@@ -17,7 +17,7 @@
 
     <div class="card">
         <h2>Predicción de Rendimiento (DNP)</h2>
-        <p>Modelo de múltiples capas ocultas</p>
+        <p>Modelo con tensores definidos explícitamente</p>
         
         <input type="number" id="estudio" placeholder="Horas de estudio" step="0.1">
         <br>
@@ -32,25 +32,41 @@
         let model;
         async function cargarRed() {
             try {
+                // Mantenemos la ruta relativa que nos funcionó
                 model = await tf.loadLayersModel('./carpeta_web_punto3/model.json');
                 document.getElementById("resultado").innerText = "Red Profunda Lista.";
             } catch (err) {
-                document.getElementById("resultado").innerText = "Error al cargar DNP.";
+                document.getElementById("resultado").innerText = "Error al cargar el modelo JSON.";
+                console.error(err);
             }
         }
 
         async function calcular() {
             if (!model) return;
+            
             const h_estudio = parseFloat(document.getElementById("estudio").value);
             const h_sueno = parseFloat(document.getElementById("sueno").value);
 
-            const input = tf.tensor2d([[h_estudio, h_sueno]]);
-            const pred = model.predict(input);
+            if (isNaN(h_estudio) || isNaN(h_sueno)) {
+                alert("Ingresa ambos valores");
+                return;
+            }
+
+            // APLICANDO LA CORRECCIÓN DEL PROFESOR:
+            // Como son 2 variables de entrada, el shape es [1, 2] (1 fila, 2 columnas)
+            const tensorEntrada = tf.tensor2d([h_estudio, h_sueno], [1, 2]);
+            
+            const pred = model.predict(tensorEntrada);
             const val = await pred.data();
             
             document.getElementById("resultado").innerText = 
                 "Puntuación Estimada: " + Math.round(val[0]) + "/100";
+            
+            // Limpieza de memoria (buena práctica)
+            tensorEntrada.dispose();
+            pred.dispose();
         }
+        
         cargarRed();
     </script>
 </body>
